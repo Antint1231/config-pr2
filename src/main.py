@@ -5,7 +5,7 @@ from apk_repo import load_apk_repo
 from config import load_config
 from errors import AppError
 from file_repo import load_file_repo
-from graph import build_graph
+from graph import build_graph, load_order
 
 DEFAULT_CONFIG = "config.yaml"
 ERROR_EXIT_CODE = 1
@@ -24,6 +24,13 @@ def print_graph(graph):
         print(f"{name} -> {', '.join(dependencies) or '-'}")
 
 
+def print_load_order(graph, package):
+    """Выводит пакеты в порядке загрузки: сначала зависимости."""
+    print(f"Порядок загрузки для пакета {package}:")
+    for number, name in enumerate(load_order(graph, package), start=1):
+        print(f"  {number}. {name}")
+
+
 def run(path):
     """Загружает конфигурацию, строит и выводит граф зависимостей."""
     config = load_config(path)
@@ -31,7 +38,10 @@ def run(path):
     graph = build_graph(
         repo, config.package, config.max_depth, config.filter_substring
     )
-    print_graph(graph)
+    if config.load_order:
+        print_load_order(graph, config.package)
+    else:
+        print_graph(graph)
 
 
 def main(argv):

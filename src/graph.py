@@ -23,8 +23,7 @@ def is_filtered(name, substring):
 
 
 def bfs_level(repo, level, depth, max_depth, substring, graph):
-    """Обрабатывает один уровень графа и рекурсивно вызывает себя
-    для следующего уровня.
+    """Обрабатывает один уровень графа и вызывает себя для следующего.
 
     Если пакет уже есть в графе (в том числе при цикле), на него
     добавляется только ребро, а повторно он не обходится.
@@ -41,3 +40,25 @@ def bfs_level(repo, level, depth, max_depth, substring, graph):
                 graph[dep] = []
                 next_level.append(dep)
     bfs_level(repo, next_level, depth + 1, max_depth, substring, graph)
+
+
+def load_order(graph, root):
+    """Возвращает порядок загрузки пакетов для корневого пакета.
+
+    Используется обход в глубину с добавлением пакета в результат после
+    всех его зависимостей, поэтому зависимости идут раньше зависящих от
+    них пакетов, а сам root - последним. При циклической зависимости
+    обратное ребро игнорируется, потому что пакет уже посещен.
+    """
+    order = []
+    visit(graph, root, set(), order)
+    return order
+
+
+def visit(graph, name, seen, order):
+    """Рекурсивно обходит зависимости пакета и дополняет order."""
+    seen.add(name)
+    for dep in graph[name]:
+        if dep not in seen:
+            visit(graph, dep, seen, order)
+    order.append(name)

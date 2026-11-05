@@ -43,6 +43,11 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(config.max_depth, DEFAULT_MAX_DEPTH)
         self.assertEqual(config.filter_substring, "")
 
+    def test_load_order_flag(self):
+        config = self.load("package: A\nrepository: https://a.b/c\n"
+                           "load_order: true\n")
+        self.assertTrue(config.load_order)
+
     def test_missing_file(self):
         with self.assertRaises(ConfigError):
             load_config("no_such_file.yaml")

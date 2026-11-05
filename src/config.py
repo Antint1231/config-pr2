@@ -20,6 +20,7 @@ class Config:
     ascii_tree: bool = False
     max_depth: int = DEFAULT_MAX_DEPTH
     filter_substring: str = ""
+    load_order: bool = False
 
 
 def read_yaml(path):
@@ -98,6 +99,7 @@ def parse_config(data):
         ascii_tree=get_bool(data, "ascii_tree"),
         max_depth=get_depth(data),
         filter_substring=get_str(data, "filter_substring"),
+        load_order=get_bool(data, "load_order"),
     )
     check_repository(config.repository, config.test_mode)
     return config

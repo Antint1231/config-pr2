@@ -3,7 +3,7 @@ import unittest
 
 from errors import RepoError
 from file_repo import parse_graph
-from graph import build_graph
+from graph import build_graph, load_order
 
 BASIC = "A: B C\nB: D\nC: D E\nD: F\nE:\nF:\nG: H\nH:\n"
 CYCLE = "A: B\nB: C D\nC: A\nD: D E\nE:\n"
@@ -60,6 +60,40 @@ class GraphTest(unittest.TestCase):
     def test_unknown_root(self):
         with self.assertRaises(RepoError):
             build_graph(parse_graph(BASIC), "Z", 3, "")
+
+
+class LoadOrderTest(unittest.TestCase):
+    """Проверка порядка загрузки."""
+
+    def order(self, text, root, depth=10, substring=""):
+        """Строит граф и возвращает порядок загрузки."""
+        graph = build_graph(parse_graph(text), root, depth, substring)
+        return load_order(graph, root)
+
+    def test_dependencies_come_first(self):
+        order = self.order(BASIC, "A")
+        self.assertEqual(order, ["F", "D", "B", "E", "C", "A"])
+
+    def test_every_dependency_before_dependent(self):
+        graph = build_graph(parse_graph(BASIC), "A", 10, "")
+        order = load_order(graph, "A")
+        for name, dependencies in graph.items():
+            for dep in dependencies:
+                self.assertLess(order.index(dep), order.index(name))
+
+    def test_no_duplicates(self):
+        order = self.order(BASIC, "A")
+        self.assertEqual(len(order), len(set(order)))
+
+    def test_cycle(self):
+        order = self.order(CYCLE, "A")
+        self.assertEqual(order, ["C", "E", "D", "B", "A"])
+
+    def test_single_package(self):
+        self.assertEqual(self.order(BASIC, "F"), ["F"])
+
+    def test_respects_depth(self):
+        self.assertEqual(self.order(BASIC, "A", depth=1), ["B", "C", "A"])
 
 
 if __name__ == "__main__":
