@@ -6,6 +6,7 @@ from config import load_config
 from errors import AppError
 from file_repo import load_file_repo
 from graph import build_graph, load_order
+from visual import to_ascii_tree, to_mermaid
 
 DEFAULT_CONFIG = "config.yaml"
 ERROR_EXIT_CODE = 1
@@ -18,12 +19,6 @@ def make_repo(config):
     return load_apk_repo(config.repository)
 
 
-def print_graph(graph):
-    """Выводит граф: у каждого пакета список его зависимостей."""
-    for name, dependencies in graph.items():
-        print(f"{name} -> {', '.join(dependencies) or '-'}")
-
-
 def print_load_order(graph, package):
     """Выводит пакеты в порядке загрузки: сначала зависимости."""
     print(f"Порядок загрузки для пакета {package}:")
@@ -31,17 +26,25 @@ def print_load_order(graph, package):
         print(f"  {number}. {name}")
 
 
+def show_result(config, graph):
+    """Выводит результат в тех видах, которые включены в настройках."""
+    print(to_mermaid(graph))
+    if config.ascii_tree:
+        print()
+        print(to_ascii_tree(graph, config.package))
+    if config.load_order:
+        print()
+        print_load_order(graph, config.package)
+
+
 def run(path):
-    """Загружает конфигурацию, строит и выводит граф зависимостей."""
+    """Загружает конфигурацию, строит граф и выводит его."""
     config = load_config(path)
     repo = make_repo(config)
     graph = build_graph(
         repo, config.package, config.max_depth, config.filter_substring
     )
-    if config.load_order:
-        print_load_order(graph, config.package)
-    else:
-        print_graph(graph)
+    show_result(config, graph)
 
 
 def main(argv):
