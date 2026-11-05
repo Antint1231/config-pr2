@@ -1,0 +1,6 @@
+package: A
+repository: examples/repo_basic.txt
+test_mode: true
+ascii_tree: true
+max_depth: 3
+filter_substring: ""
