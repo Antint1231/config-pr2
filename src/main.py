@@ -3,26 +3,35 @@ import sys
 
 from apk_repo import load_apk_repo
 from config import load_config
-from errors import AppError, RepoError
+from errors import AppError
+from file_repo import load_file_repo
+from graph import build_graph
 
 DEFAULT_CONFIG = "config.yaml"
 ERROR_EXIT_CODE = 1
 
 
-def print_direct_dependencies(repo, package):
-    """Выводит прямые зависимости пакета."""
-    if not repo.has_package(package):
-        raise RepoError(f"пакет '{package}' не найден в репозитории")
-    print(f"Прямые зависимости пакета {package}:")
-    for name in repo.dependencies(package):
-        print(f"  {name}")
+def make_repo(config):
+    """Создает тестовый или настоящий репозиторий по настройкам."""
+    if config.test_mode:
+        return load_file_repo(config.repository)
+    return load_apk_repo(config.repository)
+
+
+def print_graph(graph):
+    """Выводит граф: у каждого пакета список его зависимостей."""
+    for name, dependencies in graph.items():
+        print(f"{name} -> {', '.join(dependencies) or '-'}")
 
 
 def run(path):
-    """Загружает конфигурацию и репозиторий, выводит зависимости."""
+    """Загружает конфигурацию, строит и выводит граф зависимостей."""
     config = load_config(path)
-    repo = load_apk_repo(config.repository)
-    print_direct_dependencies(repo, config.package)
+    repo = make_repo(config)
+    graph = build_graph(
+        repo, config.package, config.max_depth, config.filter_substring
+    )
+    print_graph(graph)
 
 
 def main(argv):
