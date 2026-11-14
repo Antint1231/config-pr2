@@ -19,22 +19,22 @@ class MermaidTest(unittest.TestCase):
 
     def test_simple(self):
         text = to_mermaid(graph_of("A: B\nB:\n"))
-        self.assertEqual(
+        self.assert_equal(
             text,
             'graph TD\n    n0["A"]\n    n1["B"]\n    n0 --> n1',
         )
 
     def test_quotes_are_escaped(self):
         text = to_mermaid({'a"b': []})
-        self.assertIn("a#quot;b", text)
+        self.assert_in("a#quot;b", text)
 
     def test_special_characters_in_names(self):
         text = to_mermaid({"lib-x:1": ["so+2"], "so+2": []})
-        self.assertIn('n0["lib-x:1"]', text)
-        self.assertIn("n0 --> n1", text)
+        self.assert_in('n0["lib-x:1"]', text)
+        self.assert_in("n0 --> n1", text)
 
     def test_cycle_edge_is_kept(self):
-        self.assertIn("n2 --> n0", to_mermaid(graph_of(CYCLE)))
+        self.assert_in("n2 --> n0", to_mermaid(graph_of(CYCLE)))
 
 
 class AsciiTreeTest(unittest.TestCase):
@@ -50,14 +50,14 @@ class AsciiTreeTest(unittest.TestCase):
             "    ├── D (уже показан)",
             "    └── E",
         ])
-        self.assertEqual(to_ascii_tree(graph_of(BASIC), "A"), expected)
+        self.assert_equal(to_ascii_tree(graph_of(BASIC), "A"), expected)
 
     def test_cycle_mark(self):
         expected = "A\n└── B\n    └── C\n        └── A (цикл)"
-        self.assertEqual(to_ascii_tree(graph_of(CYCLE), "A"), expected)
+        self.assert_equal(to_ascii_tree(graph_of(CYCLE), "A"), expected)
 
     def test_single_package(self):
-        self.assertEqual(to_ascii_tree({"A": []}, "A"), "A")
+        self.assert_equal(to_ascii_tree({"A": []}, "A"), "A")
 
 
 if __name__ == "__main__":
